@@ -1,2 +1,25 @@
-Файл: package.json
-Создан автоматически.
+{
+  "name": "robomessenger",
+  "version": "1.0.0",
+  "description": "Робо Мессенджер - современный веб-мессенджер",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "messenger",
+    "chat",
+    "robomessenger"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

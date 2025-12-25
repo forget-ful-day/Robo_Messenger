@@ -3,10 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>index.html</title>
+    <title>Робо Мессенджер</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>index.html</h1>
-    <p>Это автоматически сгенерированный файл.</p>
+    <div class="container">
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>Робо Мессенджер</h1>
+                <div class="online-counter">
+                    <i class="fas fa-users"></i>
+                    <span id="online-count">0</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-status">
+                    <div class="status-indicator online" id="status-indicator"></div>
+                    <span id="username">Гость</span>
+                </div>
+                <div class="status-selector">
+                    <select id="status-select">
+                        <option value="online">🟢 В сети</option>
+                        <option value="away">🟡 Отошел</option>
+                        <option value="busy">🔴 Занят</option>
+                        <option value="offline">⚫ Не в сети</option>
+                    </select>
+                </div>
+                <button id="login-btn" class="btn">Войти</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="contacts">Контакты</button>
+                    <button class="tab-btn" data-tab="online">Онлайн</button>
+                    <button class="tab-btn" data-tab="chats">Чаты</button>
+                </div>
+                
+                <!-- Вкладка контактов -->
+                <div class="tab-content active" id="contacts-tab">
+                    <div class="sidebar-header">
+                        <h2>Контакты</h2>
+                        <button id="new-chat-btn" class="icon-btn" title="Новый чат">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="contact-search" placeholder="Поиск контактов...">
+                    </div>
+                    <div class="contact-list" id="contact-list">
+                        <!-- Контакты будут загружены динамически -->
+                    </div>
+                </div>
+                
+                <!-- Вкладка онлайн пользователей -->
+                <div class="tab-content" id="online-tab">
+                    <div class="sidebar-header">
+                        <h2>Онлайн пользователи</h2>
+                        <button id="refresh-online" class="icon-btn" title="Обновить">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="online-list" id="online-list">
+                        <!-- Список онлайн пользователей будет загружен динамически -->
+                    </div>
+                </div>
+                
+                <!-- Вкладка активных чатов -->
+                <div class="tab-content" id="chats-tab">
+                    <div class="sidebar-header">
+                        <h2>Активные чаты</h2>
+                    </div>
+                    <div class="chat-list" id="chat-list">
+                        <!-- Активные чаты будут загружены динамически -->
+                    </div>
+                </div>
+            </aside>
+
+            <main class="chat-area">
+                <div class="chat-header">
+                    <div class="current-contact">
+                        <div class="contact-avatar" id="current-contact-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3 id="current-contact-name">Робо Мессенджер</h3>
+                            <div class="contact-status">
+                                <p id="contact-status">Выберите чат для общения</p>
+                                <p id="typing-indicator" class="typing" style="display: none;">
+                                    <i class="fas fa-pencil-alt"></i> печатает...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="icon-btn" title="Информация о чате" id="chat-info-btn">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                        <button class="icon-btn" title="Очистить чат" id="clear-chat-btn">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messages-container">
+                    <!-- Сообщения будут загружены динамически -->
+                    <div class="welcome-message">
+                        <div class="welcome-content">
+                            <i class="fas fa-comments"></i>
+                            <h2>Добро пожаловать в Робо Мессенджер!</h2>
+                            <p>Выберите пользователя из списка онлайн или создайте новый чат для начала общения</p>
+                            <div class="welcome-features">
+                                <div class="feature">
+                                    <i class="fas fa-users"></i>
+                                    <span>Общайтесь с другими пользователями в реальном времени</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-robot"></i>
+                                    <span>Чат с роботом-помощником всегда доступен</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Мгновенная доставка сообщений</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-input-area">
+                    <div class="input-tools">
+                        <button class="icon-btn" title="Прикрепить файл">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="icon-btn" title="Эмодзи" id="emoji-btn">
+                            <i class="far fa-smile"></i>
+                        </button>
+                    </div>
+                    <input type="text" id="message-input" placeholder="Введите сообщение..." disabled>
+                    <button id="send-btn" class="btn primary" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- Модальное окно входа -->
+        <div class="modal" id="login-modal">
+            <div class="modal-content">
+                <h2>Вход в Робо Мессенджер</h2>
+                <div class="avatar-selection">
+                    <p>Выберите аватар:</p>
+                    <div class="avatar-options" id="avatar-options">
+                        <!-- Аватары будут загружены динамически -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-username">Имя пользователя:</label>
+                    <input type="text" id="login-username" placeholder="Введите ваше имя" maxlength="20">
+                    <small class="form-hint">Имя будет видно другим пользователям</small>
+                </div>
+                <div class="form-actions">
+                    <button id="login-submit" class="btn primary">Войти в чат</button>
+                    <button id="login-cancel" class="btn">Позже</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно информации о пользователе -->
+        <div class="modal" id="user-info-modal">
+            <div class="modal-content">
+                <div class="user-info-header">
+                    <div class="user-avatar-large" id="info-user-avatar"></div>
+                    <h2 id="info-username"></h2>
+                    <p class="user-status" id="info-user-status"></p>
+                </div>
+                <div class="user-actions">
+                    <button id="start-chat-btn" class="btn primary">
+                        <i class="fas fa-comment"></i> Написать сообщение
+                    </button>
+                    <button id="close-info-btn" class="btn">Закрыть</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div class="notifications-container" id="notifications-container"></div>
+    </div>
+
+    <!-- Подключаем Socket.io клиент -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/chat.js"></script>
+    <script src="/js/ui.js"></script>
 </body>
 </html>
