@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: chat-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: chat_app
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - chat-network
+
+  backend:
+    build: ./backend
+    container_name: chat-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: chat_app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - chat-network
+
+  frontend:
+    image: nginx:alpine
+    container_name: chat-frontend
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+    networks:
+      - chat-network
+
+volumes:
+  mysql-data:
+
+networks:
+  chat-network:
+    driver: bridge

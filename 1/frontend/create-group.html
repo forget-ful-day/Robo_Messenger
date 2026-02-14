@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App - Create Group</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <h2>Create New Group</h2>
+            <form id="createGroupForm">
+                <div class="form-group">
+                    <label for="groupName">Group Name</label>
+                    <input type="text" id="groupName" required maxlength="50">
+                </div>
+                
+                <div class="form-group">
+                    <label for="groupDescription">Description (optional)</label>
+                    <textarea id="groupDescription" rows="3" maxlength="200"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Group Avatar</label>
+                    <div class="avatar-selector" id="avatarSelector">
+                        <!-- Avatars will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox">
+                    <label>
+                        <input type="checkbox" id="isPrivate">
+                        Private Group (invite only)
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">Create Group</button>
+            </form>
+            <p class="auth-link"><a href="chat.html">← Back to Chat</a></p>
+        </div>
+    </div>
+    <script src="js/groups.js"></script>
+</body>
+</html>

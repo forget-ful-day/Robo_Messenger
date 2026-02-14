@@ -1,0 +1,125 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "максим",
+      "email": "z.max.evg@gmail.com",
+      "password_hash": "$2b$10$v4HBRsieXJ91d6GUOGCZR.Kkb0t21HFCCTJQvjWvpu5K0LDn8Q1Su",
+      "avatar_url": "https://ui-avatars.com/api/?name=максим&background=667eea&color=fff",
+      "is_online": true,
+      "last_seen": "2026-02-14T17:23:24.200Z",
+      "created_at": "2026-02-14T16:15:25.416Z"
+    },
+    {
+      "id": 2,
+      "username": "tester",
+      "email": "vlntnaz@gmail.com",
+      "password_hash": "$2b$10$NLqP9T8CZWPYLp0.OtDHbONyEQ7vv3Zq0yjGfXG3n0yxDFfVR78U.",
+      "avatar_url": "https://ui-avatars.com/api/?name=tester&background=667eea&color=fff",
+      "is_online": true,
+      "last_seen": "2026-02-14T17:23:31.044Z",
+      "created_at": "2026-02-14T16:16:27.310Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "name": "1",
+      "description": "d",
+      "created_by": 2,
+      "avatar_url": "https://ui-avatars.com/api/?name=1&background=28a745&color=fff&size=128",
+      "created_at": "2026-02-14T16:17:00.069Z"
+    }
+  ],
+  "groupMembers": [
+    {
+      "group_id": 1,
+      "user_id": 2,
+      "role": "admin",
+      "joined_at": "2026-02-14T16:17:00.069Z"
+    }
+  ],
+  "privateMessages": [
+    {
+      "id": 1,
+      "sender_id": 2,
+      "receiver_id": 1,
+      "message": "ghbdtn",
+      "is_read": false,
+      "created_at": "2026-02-14T16:16:42.023Z"
+    },
+    {
+      "id": 2,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "message": "авсч",
+      "is_read": false,
+      "created_at": "2026-02-14T17:20:04.321Z"
+    },
+    {
+      "id": 3,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "message": "76453",
+      "is_read": false,
+      "created_at": "2026-02-14T17:23:10.724Z"
+    },
+    {
+      "id": 4,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "message": "в",
+      "is_read": false,
+      "created_at": "2026-02-14T17:23:15.381Z"
+    },
+    {
+      "id": 5,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "message": "во",
+      "is_read": false,
+      "created_at": "2026-02-14T17:23:18.424Z"
+    },
+    {
+      "id": 6,
+      "sender_id": 2,
+      "receiver_id": 1,
+      "message": "оно очень криво работает",
+      "is_read": false,
+      "created_at": "2026-02-14T17:23:45.080Z"
+    },
+    {
+      "id": 7,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "message": "да оно плохо работает 😁",
+      "is_read": false,
+      "created_at": "2026-02-14T17:24:14.284Z"
+    }
+  ],
+  "groupMessages": [
+    {
+      "id": 1,
+      "group_id": 1,
+      "sender_id": 2,
+      "message": "hjk",
+      "created_at": "2026-02-14T16:17:04.004Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoi0LzQsNC60YHQuNC8IiwiaWF0IjoxNzcxMDg1NzMwLCJleHAiOjE3NzE2OTA1MzB9.ONbT5FdlfAve9kQ1yM7L21MTY6t_mWSQ4hHfS0cQSKM",
+      "expires_at": "2026-02-21T16:15:30.347Z",
+      "created_at": "2026-02-14T16:15:30.348Z"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoidGVzdGVyIiwiaWF0IjoxNzcxMDg1NzkzLCJleHAiOjE3NzE2OTA1OTN9.ElhlGEOZRI7ZgWiE1scBzaqq6pOOwgtNf6JNS26G5Jc",
+      "expires_at": "2026-02-21T16:16:33.592Z",
+      "created_at": "2026-02-14T16:16:33.592Z"
+    }
+  ]
+}

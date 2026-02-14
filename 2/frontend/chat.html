@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат - Главная</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Дополнительные стили для чата */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            width: 1400px;
+            height: 900px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: 50px auto;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8fafd;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-info {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #667eea;
+        }
+
+        .user-info span {
+            flex: 1;
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .search-box {
+            padding: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .tabs {
+            display: flex;
+            padding: 0 15px 15px;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .chats-list h3 {
+            color: #666;
+            font-size: 14px;
+            margin: 15px 0 10px;
+            padding-left: 5px;
+        }
+
+        .group-section {
+            margin-bottom: 25px;
+        }
+
+        .group-section h4 {
+            color: #666;
+            font-size: 13px;
+            margin: 15px 0 10px;
+            padding-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .chat-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .chat-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-info {
+            flex: 1;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-status {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .online-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            display: inline-block;
+        }
+
+        .online-status.online {
+            background: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+        }
+
+        .join-group-btn {
+            padding: 4px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: background 0.3s;
+        }
+
+        .join-group-btn:hover {
+            background: #218838;
+        }
+
+        .create-group-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+
+        .create-group-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .delete-account-btn {
+            margin: 15px;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .delete-account-btn:hover {
+            background: #c82333;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .members-btn {
+            padding: 8px 15px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .members-btn:hover {
+            background: #5a6268;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8fafd;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
+
+        .message.own {
+            align-self: flex-end;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.own .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-info {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            padding: 0 10px;
+        }
+
+        .message.own .message-info {
+            text-align: right;
+        }
+
+        .message-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .message-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .message-input button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .message-input button:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .group-type-selector {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .group-type-selector label {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .group-type-selector input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .create-btn {
+            flex: 2;
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .create-btn:hover {
+            background: #5a67d8;
+        }
+
+        .cancel-btn {
+            flex: 1;
+            background: #6c757d;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+        }
+
+        /* Индикатор печатания */
+        #typingIndicator {
+            padding: 8px 15px;
+            color: #666;
+            font-style: italic;
+            font-size: 12px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            margin: 0 20px;
+            display: none;
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1500px) {
+            .chat-container {
+                width: 1200px;
+                height: 800px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .chat-container {
+                width: 100%;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Левая панель -->
+        <aside class="sidebar">
+            <div class="user-info">
+                <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff" alt="Avatar" id="userAvatar">
+                <span id="username">Загрузка...</span>
+                <button onclick="logout()" class="logout-btn">Выйти</button>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск пользователей...">
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('chats')">💬 Чаты</button>
+                <button class="tab-btn" onclick="switchTab('groups')">👥 Группы</button>
+            </div>
+            
+            <!-- Список чатов -->
+            <div id="chatsList" class="chats-list">
+                <h3>Пользователи</h3>
+                <!-- Динамически загружается -->
+            </div>
+            
+            <!-- Список групп -->
+            <div id="groupsList" class="chats-list" style="display: none;">
+                <div id="groupsContainer"></div>
+            </div>
+            
+            <button onclick="deleteAccount()" class="delete-account-btn">🗑️ Удалить аккаунт</button>
+        </aside>
+        
+        <!-- Правая панель - чат -->
+        <main class="chat-area">
+            <div class="chat-header" id="chatHeader">
+                <h2>Выберите чат</h2>
+            </div>
+            
+            <!-- Индикатор печатания -->
+            <div id="typingIndicator"></div>
+            
+            <!-- Сообщения -->
+            <div class="messages" id="messages">
+                <div style="text-align: center; color: #999; margin-top: 50px;">
+                    👋 Добро пожаловать! Выберите чат для общения
+                </div>
+            </div>
+            
+            <!-- Поле ввода сообщения -->
+            <div class="message-input" style="display: none;">
+                <input type="text" id="messageText" placeholder="Введите сообщение...">
+                <button onclick="sendMessage()">Отправить</button>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Модальное окно создания группы -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <h3>✨ Создать новую группу</h3>
+            <input type="text" id="groupName" placeholder="Название группы" required>
+            <textarea id="groupDescription" placeholder="Описание группы (необязательно)" rows="3"></textarea>
+            
+            <div class="group-type-selector">
+                <label>
+                    <input type="radio" name="groupType" value="private" checked> 
+                    <span>🔒 Приватная группа (только по приглашению)</span>
+                </label>
+                <label>
+                    <input type="radio" name="groupType" value="public"> 
+                    <span>🌟 Публичная группа (все могут вступить)</span>
+                </label>
+            </div>
+            
+            <div class="modal-buttons">
+                <button onclick="createGroup()" class="create-btn">Создать группу</button>
+                <button onclick="closeModal()" class="cancel-btn">Отмена</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно участников группы -->
+    <div id="membersModal" class="modal">
+        <div class="modal-content">
+            <h3>👥 Участники группы</h3>
+            <div id="membersList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+                <!-- Динамически загружается -->
+            </div>
+            <button onclick="closeMembersModal()" class="cancel-btn">Закрыть</button>
+        </div>
+    </div>
+
+    <script src="js/chat.js"></script>
+</body>
+</html>
