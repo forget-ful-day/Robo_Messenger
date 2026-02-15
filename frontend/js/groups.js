@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = `http://${window.location.hostname}:3000/api`;
 const token = localStorage.getItem('token');
 const userId = localStorage.getItem('userId');
 
@@ -39,7 +39,7 @@ document.getElementById('createGroupForm').addEventListener('submit', (e) => {
     const selectedAvatar = document.querySelector('.avatar-option.selected');
     const avatar = selectedAvatar ? selectedAvatar.dataset.avatar : '👥';
     
-    const ws = new WebSocket(`ws://localhost:3000`);
+    const ws = new WebSocket(`ws://${window.location.hostname}:3000`);
     
     ws.onopen = () => {
         ws.send(JSON.stringify({

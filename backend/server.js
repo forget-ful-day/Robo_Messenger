@@ -77,6 +77,21 @@ db.serialize(() => {
     )
   `);
 
+  // Group invites table (for private groups)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS group_invites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      invited_by INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(group_id, user_id),
+      FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      FOREIGN KEY (invited_by) REFERENCES users (id) ON DELETE CASCADE
+    )
+  `);
+
   // Messages table with group support
   db.run(`
     CREATE TABLE IF NOT EXISTS messages (
@@ -126,6 +141,24 @@ db.serialize(() => {
       UNIQUE(name, created_by)
     )
   `);
+
+  // Seed common public groups on first launch
+  db.get('SELECT COUNT(*) as count FROM groups', (err, row) => {
+    if (!err && row && row.count === 0) {
+      const commonGroups = [
+        ['Общий чат', 'Главный общий чат для всех пользователей', '🌍'],
+        ['Знакомства', 'Здесь можно познакомиться с участниками', '🤝'],
+        ['Новости', 'Важные объявления и новости сервиса', '📰']
+      ];
+
+      commonGroups.forEach(([name, description, avatar]) => {
+        db.run(
+          'INSERT INTO groups (name, description, avatar, created_by, is_private) VALUES (?, ?, ?, ?, 0)',
+          [name, description, avatar, 1]
+        );
+      });
+    }
+  });
 });
 
 // WebSocket connections
@@ -774,17 +807,31 @@ app.post('/api/register', async (req, res) => {
           return res.status(500).json({ error: 'Database error' });
         }
 
-        const token = jwt.sign(
-          { id: this.lastID, username },
-          JWT_SECRET,
-          { expiresIn: '24h' }
-        );
+        const createdUserId = this.lastID;
 
-        res.json({
-          id: this.lastID,
-          username,
-          avatar: userAvatar,
-          token
+        // Auto-join all public (common) groups
+        db.all('SELECT id FROM groups WHERE is_private = 0', (groupsErr, groups) => {
+          if (!groupsErr && groups && groups.length > 0) {
+            groups.forEach((group) => {
+              db.run(
+                'INSERT OR IGNORE INTO group_members (group_id, user_id, role) VALUES (?, ?, ?)',
+                [group.id, createdUserId, 'member']
+              );
+            });
+          }
+
+          const token = jwt.sign(
+            { id: createdUserId, username },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+          );
+
+          res.json({
+            id: createdUserId,
+            username,
+            avatar: userAvatar,
+            token
+          });
         });
       }
     );
@@ -893,6 +940,26 @@ app.get('/api/groups', authenticateToken, (req, res) => {
   );
 });
 
+app.get('/api/public-groups', authenticateToken, (req, res) => {
+  db.all(
+    `SELECT g.*, COUNT(gm.user_id) as member_count,
+            CASE WHEN ugm.user_id IS NULL THEN 0 ELSE 1 END as is_member
+     FROM groups g
+     LEFT JOIN group_members gm ON g.id = gm.group_id
+     LEFT JOIN group_members ugm ON g.id = ugm.group_id AND ugm.user_id = ?
+     WHERE g.is_private = 0
+     GROUP BY g.id
+     ORDER BY g.created_at ASC`,
+    [req.user.id],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(rows);
+    }
+  );
+});
+
 app.get('/api/group-messages/:groupId', authenticateToken, (req, res) => {
   db.all(
     `SELECT * FROM messages 
@@ -951,6 +1018,92 @@ app.get('/api/custom-emojis/:userId', authenticateToken, (req, res) => {
       res.json(rows);
     }
   );
+});
+
+app.post('/api/update-avatar', authenticateToken, (req, res) => {
+  const { userId, avatar } = req.body;
+
+  if (!avatar || req.user.id !== userId) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+
+  db.run('UPDATE users SET avatar = ? WHERE id = ? AND deleted = 0', [avatar, userId], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    broadcastUserList();
+    res.json({ success: true, avatar });
+  });
+});
+
+app.post('/api/add-custom-emoji', authenticateToken, (req, res) => {
+  const { userId, name, emoji } = req.body;
+
+  if (!name || !emoji || req.user.id !== userId) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+
+  db.run(
+    'INSERT INTO custom_emojis (name, emoji, created_by) VALUES (?, ?, ?)',
+    [name, emoji, userId],
+    function(err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(400).json({ error: 'Emoji name already exists' });
+        }
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      res.json({
+        success: true,
+        emoji: { id: this.lastID, name, emoji }
+      });
+    }
+  );
+});
+
+app.post('/api/delete-account', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+
+    db.run(
+      'UPDATE users SET deleted = 1, deleted_at = CURRENT_TIMESTAMP, status = ? WHERE id = ?',
+      ['deleted', userId],
+      (err) => {
+        if (err) {
+          db.run('ROLLBACK');
+          return res.status(500).json({ error: 'Failed to delete account' });
+        }
+
+        db.run(
+          `UPDATE messages
+           SET sender_name = 'Deleted User',
+               sender_avatar = '👻',
+               message = '[This user has been deleted]'
+           WHERE sender_id = ?`,
+          [userId],
+          (updateErr) => {
+            if (updateErr) {
+              db.run('ROLLBACK');
+              return res.status(500).json({ error: 'Failed to anonymize messages' });
+            }
+
+            db.run('DELETE FROM group_members WHERE user_id = ?', [userId]);
+            db.run('COMMIT');
+            broadcastUserList();
+            res.json({ success: true });
+          }
+        );
+      }
+    );
+  });
 });
 
 // Serve frontend for all other routes

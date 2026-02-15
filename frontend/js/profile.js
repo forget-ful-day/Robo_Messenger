@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = `http://${window.location.hostname}:3000/api`;
 const token = localStorage.getItem('token');
 const userId = localStorage.getItem('userId');
 const username = localStorage.getItem('username');
@@ -109,24 +109,26 @@ document.getElementById('deleteAccountBtn').addEventListener('click', () => {
     document.getElementById('confirmModal').classList.add('show');
 });
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-    const ws = new WebSocket(`ws://localhost:3000`);
-    
-    ws.onopen = () => {
-        ws.send(JSON.stringify({
-            type: 'delete_account',
-            userId: parseInt(userId),
-            username: username
-        }));
-    };
-    
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'account_deleted') {
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${API_URL}/delete-account`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
             localStorage.clear();
             window.location.href = 'index.html';
+        } else {
+            alert(data.error || 'Failed to delete account');
         }
-    };
+    } catch (error) {
+        alert('Failed to delete account');
+    }
 });
 
 function closeModal() {
