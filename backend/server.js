@@ -77,20 +77,6 @@ db.serialize(() => {
     )
   `);
 
-  // Group invites table (for private groups)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS group_invites (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      group_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      invited_by INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(group_id, user_id),
-      FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      FOREIGN KEY (invited_by) REFERENCES users (id) ON DELETE CASCADE
-    )
-  `);
 
   // Messages table with group support
   db.run(`
@@ -141,25 +127,28 @@ db.serialize(() => {
       UNIQUE(name, created_by)
     )
   `);
-
-  // Seed common public groups on first launch
-  db.get('SELECT COUNT(*) as count FROM groups', (err, row) => {
-    if (!err && row && row.count === 0) {
-      const commonGroups = [
-        ['Общий чат', 'Главный общий чат для всех пользователей', '🌍'],
-        ['Знакомства', 'Здесь можно познакомиться с участниками', '🤝'],
-        ['Новости', 'Важные объявления и новости сервиса', '📰']
-      ];
-
-      commonGroups.forEach(([name, description, avatar]) => {
-        db.run(
-          'INSERT INTO groups (name, description, avatar, created_by, is_private) VALUES (?, ?, ?, ?, 0)',
-          [name, description, avatar, 1]
-        );
-      });
-    }
-  });
 });
+
+function ensureCommonGroups(createdByUserId) {
+  const commonGroups = [
+    ['Общий чат', 'Главный общий чат для всех пользователей', '🌍'],
+    ['Знакомства', 'Здесь можно познакомиться с участниками', '🤝'],
+    ['Новости', 'Важные объявления и новости сервиса', '📰']
+  ];
+
+  db.get('SELECT COUNT(*) as count FROM groups WHERE is_private = 0', (err, row) => {
+    if (err || (row && row.count > 0)) {
+      return;
+    }
+
+    commonGroups.forEach(([name, description, avatar]) => {
+      db.run(
+        'INSERT INTO groups (name, description, avatar, created_by, is_private) VALUES (?, ?, ?, ?, 0)',
+        [name, description, avatar, createdByUserId]
+      );
+    });
+  });
+}
 
 // WebSocket connections
 const clients = new Map(); // ws -> { userId, username, avatar, rooms }
@@ -524,7 +513,6 @@ async function handleCreateGroup(ws, message) {
 }
 
 async function handleJoinGroup(ws, message) {
-  // Check if group exists and is not private or user has invite
   db.get('SELECT * FROM groups WHERE id = ?', [message.groupId], (err, group) => {
     if (err || !group) {
       ws.send(JSON.stringify({ type: 'error', message: 'Group not found' }));
@@ -532,20 +520,11 @@ async function handleJoinGroup(ws, message) {
     }
 
     if (group.is_private) {
-      // Check if user was invited
-      db.get('SELECT * FROM group_invites WHERE group_id = ? AND user_id = ?',
-        [message.groupId, message.userId],
-        (err, invite) => {
-          if (!invite) {
-            ws.send(JSON.stringify({ type: 'error', message: 'This is a private group' }));
-            return;
-          }
-          addUserToGroup(ws, message.groupId, message.userId);
-        }
-      );
-    } else {
-      addUserToGroup(ws, message.groupId, message.userId);
+      ws.send(JSON.stringify({ type: 'error', message: 'This is a private group' }));
+      return;
     }
+
+    addUserToGroup(ws, message.groupId, message.userId);
   });
 }
 
@@ -809,6 +788,8 @@ app.post('/api/register', async (req, res) => {
 
         const createdUserId = this.lastID;
 
+        ensureCommonGroups(createdUserId);
+
         // Auto-join all public (common) groups
         db.all('SELECT id FROM groups WHERE is_private = 0', (groupsErr, groups) => {
           if (!groupsErr && groups && groups.length > 0) {
@@ -1016,53 +997,6 @@ app.get('/api/custom-emojis/:userId', authenticateToken, (req, res) => {
         return res.status(500).json({ error: 'Database error' });
       }
       res.json(rows);
-    }
-  );
-});
-
-app.post('/api/update-avatar', authenticateToken, (req, res) => {
-  const { userId, avatar } = req.body;
-
-  if (!avatar || req.user.id !== userId) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
-
-  db.run('UPDATE users SET avatar = ? WHERE id = ? AND deleted = 0', [avatar, userId], function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    broadcastUserList();
-    res.json({ success: true, avatar });
-  });
-});
-
-app.post('/api/add-custom-emoji', authenticateToken, (req, res) => {
-  const { userId, name, emoji } = req.body;
-
-  if (!name || !emoji || req.user.id !== userId) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
-
-  db.run(
-    'INSERT INTO custom_emojis (name, emoji, created_by) VALUES (?, ?, ?)',
-    [name, emoji, userId],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ error: 'Emoji name already exists' });
-        }
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      res.json({
-        success: true,
-        emoji: { id: this.lastID, name, emoji }
-      });
     }
   );
 });
