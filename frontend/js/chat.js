@@ -210,15 +210,18 @@ function handleWebSocketMessage(data) {
         case 'groups_list':
             groups = data.groups;
             updateGroupsList(groups);
+            loadPublicGroups();
             break;
         case 'group_created':
             groups.push(data.group);
             updateGroupsList(groups);
+            loadPublicGroups();
             showNotification(`Group created: ${data.group.name}`);
             break;
         case 'joined_group':
             groups.push(data.group);
             updateGroupsList(groups);
+            loadPublicGroups();
             showNotification(`Joined group: ${data.group.name}`);
             break;
         case 'left_group':
@@ -309,6 +312,63 @@ function updateGroupsList(groups) {
         li.addEventListener('click', () => startGroupChat(group));
         groupsList.appendChild(li);
     });
+}
+
+async function loadPublicGroups() {
+    const publicGroupsList = document.getElementById('publicGroupsList');
+    if (!publicGroupsList) return;
+
+    try {
+        const response = await fetch(`${API_URL}/public-groups`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const publicGroups = await response.json();
+        publicGroupsList.innerHTML = '';
+
+        publicGroups.forEach((group) => {
+            const li = document.createElement('li');
+            li.className = 'group-item';
+            li.innerHTML = `
+                <div class="group-avatar">${group.avatar || '👥'}</div>
+                <div class="group-details">
+                    <div class="group-name">${group.name}</div>
+                    <div class="group-members">${group.member_count || 0} members</div>
+                </div>
+            `;
+
+            const actionBtn = document.createElement('button');
+            actionBtn.className = 'btn btn-primary';
+            actionBtn.style.marginLeft = '8px';
+
+            if (group.is_member) {
+                actionBtn.textContent = 'Open';
+                actionBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    startGroupChat(group);
+                });
+            } else {
+                actionBtn.textContent = 'Join';
+                actionBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'join_group',
+                            userId: userId,
+                            groupId: group.id
+                        }));
+                    }
+                });
+            }
+
+            li.appendChild(actionBtn);
+            publicGroupsList.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Error loading common groups:', error);
+    }
 }
 
 // Начать приватный чат
@@ -706,4 +766,5 @@ function showNotification(message, type = 'info') {
 
 // Запуск
 connectWebSocket();
+loadPublicGroups();
 startPublicChat();
